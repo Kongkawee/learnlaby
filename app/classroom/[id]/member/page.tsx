@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -39,6 +40,13 @@ type InvitePerson = {
   id: string;
 };
 
+type InvitationResponseItem = {
+  email: string;
+  role: "student" | "co-teacher" | "teacher";
+  message: string;
+};
+
+
 export default function PeoplePage() {
   const [members, setMembers] = useState<
     {
@@ -64,11 +72,12 @@ export default function PeoplePage() {
   } | null>(null);
 
   // Default invite state - use this to reset
-  const defaultInvitePerson: InvitePerson = {
+  const defaultInvitePerson = useMemo<InvitePerson>(() => ({
     email: "",
     role: "student",
     id: "1",
-  };
+  }), []);
+  
 
   // State for people to invite
   const [invitePeople, setInvitePeople] = useState<InvitePerson[]>([
@@ -86,11 +95,11 @@ export default function PeoplePage() {
     if (!isInviteDialogOpen) {
       setInvitePeople([{ ...defaultInvitePerson }]);
     }
-  }, [isInviteDialogOpen]);
+  }, [isInviteDialogOpen, defaultInvitePerson]);
 
   useEffect(() => {
     if (session?.user?.email && members.length > 0) {
-      const currentUser = members.find(member => member.email === session.user.email);
+      const currentUser = members.find(member => member.email === session?.user?.email);
       if (currentUser) {
         setUserRole(currentUser.role);
       }
@@ -253,8 +262,8 @@ export default function PeoplePage() {
       }
 
       const data = await response.json();
-      const invited = data.result.filter((r: any) => r.message === "Invitation sent");
-      const skipped = data.result.filter((r: any) => r.message !== "Invitation sent");
+      const invited = data.result.filter((r: InvitationResponseItem) => r.message === "Invitation sent");
+      const skipped = data.result.filter((r: InvitationResponseItem) => r.message !== "Invitation sent");
 
       setNotification({
         title: "Invitations Processed",
@@ -495,9 +504,9 @@ export default function PeoplePage() {
                     <li>Students go to the join page</li>
                     <li>They enter the classroom code</li>
                     <li>
-                      You'll receive a notification to approve their request
+                      You&apos;ll receive a notification to approve their request
                     </li>
-                    <li>Once approved, they'll be added to your classroom</li>
+                    <li>Once approved, they&apos;ll be added to your classroom</li>
                   </ol>
                 </div>
               </div>
@@ -506,7 +515,7 @@ export default function PeoplePage() {
             {activeTab === "email" && (
               <div className="max-h-[60vh] overflow-y-auto pr-2">
                 <div className="space-y-4">
-                  {invitePeople.map((person, index) => (
+                  {invitePeople.map((person) => (
                     <div
                       key={person.id}
                       className="flex gap-2 items-center p-4 border rounded-lg"
@@ -584,3 +593,4 @@ export default function PeoplePage() {
     </>
   );
 }
+

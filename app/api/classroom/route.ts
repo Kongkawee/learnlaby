@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"; // Adjust the import based on your project structure
-
+import { authOptions } from "@/lib/authOptions";
 const prisma = new PrismaClient();
 
 export async function GET() {

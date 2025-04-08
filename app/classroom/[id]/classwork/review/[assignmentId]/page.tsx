@@ -12,10 +12,35 @@ import {
   getStudentReviewUrl,
 } from "@/lib/api_routes";
 
+type Submission = {
+  id: string;
+  studentId: string;
+  grade?: {
+    score: number;
+  };
+};
+
+type Student = {
+  id: string;
+  name?: string;
+  image?: string;
+};
+
+type StudentWithSubmission = {
+  id: string;
+  name: string;
+  fullName: string;
+  image: string;
+  docId: string;
+  score: number | null;
+  status: "Not submitted" | "Turned in" | "Graded";
+};
+
+
 export default function ReviewWork() {
   const { id, assignmentId } = useParams();
-  const [students, setStudents] = useState<any[]>([]);
-  const [assignment, setAssignment] = useState("Assignment");
+  const [students, setStudents] = useState<StudentWithSubmission[]>([]);
+  const [assignment, setAssignment] = useState<string>("Assignment");
   const [sortOption, setSortOption] = useState("status");
   const [mainFilter, setMainFilter] = useState("All");
 
@@ -28,18 +53,23 @@ export default function ReviewWork() {
           body: JSON.stringify({ postId: assignmentId }),
         });
 
-        const data = await response.json();
-        const submissions = data.assignment.submissions || [];
+        const data: {
+          assignment: {
+            title: string;
+            submissions: Submission[];
+          };
+          students: Student[];
+        } = await response.json();
 
-        const mappedStudents = data.students.map((student: any) => {
-          const submission = submissions.find((s: any) => s.studentId === student.id);
-
+        const mappedStudents: StudentWithSubmission[] = data.students.map((student) => {
+          const submission = data.assignment.submissions.find((s) => s.studentId === student.id);
+        
           const fullName = student.name || "Unknown";
-          const image = student.image || "U";
-          let status = "Not submitted";
+          const image = student.image || AVATAR_IMAGE;
+          let status: StudentWithSubmission["status"] = "Not submitted";
           let docId = "";
           let score: number | null = null;
-
+        
           if (submission) {
             docId = submission.id;
             if (submission.grade) {
@@ -49,17 +79,17 @@ export default function ReviewWork() {
               status = "Turned in";
             }
           }
-
+          
           return {
             id: student.id,
             name: fullName,
             fullName,
-            status,
             image,
+            status,
             docId,
             score,
           };
-        });
+        });        
 
         setStudents(mappedStudents);
         setAssignment(data.assignment.title);
@@ -73,7 +103,7 @@ export default function ReviewWork() {
 
   const filteredStudents = mainFilter === "All" ? students : students.filter(s => s.status === mainFilter);
 
-  const sortStudents = (students: any[]) => {
+  const sortStudents = (students: StudentWithSubmission[]): StudentWithSubmission[] => {
     if (sortOption === "status") {
       return [...students].sort((a, b) => a.status.localeCompare(b.status));
     } else if (sortOption === "firstName") {
@@ -182,7 +212,7 @@ export default function ReviewWork() {
                   <div className="p-3 border-b flex items-center">
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center text-white"
-                      style={{ backgroundColor: student.avatarColor }}
+                      style={{ backgroundColor: "pink" }}
                     >
                       <Avatar className="w-8 h-8">
                         <AvatarImage src={student.image || AVATAR_IMAGE} alt={student.name} />

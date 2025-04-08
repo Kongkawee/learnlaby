@@ -9,11 +9,44 @@ import { ArrowUpDown } from "lucide-react"
 import { useParams } from "next/navigation"
 import { SUBMISSION_ASSIGNMENT_API, PLACEHOLDER_IMAGE } from "@/lib/api_routes"
 
+type Student = {
+  id: string;
+  name: string;
+  avatar: string;
+};
+
+type Grade = {
+  score: number;
+};
+
+type Submission = {
+  studentId: string;
+  grade?: Grade | null;
+};
+
+type Assignment = {
+  id: string;
+  title: string;
+  maxScore?: number;
+  submissions: Submission[];
+};
+
+type ApiResponse = {
+  assignments: Assignment[];
+  students: {
+    id: string;
+    name?: string;
+    image?: string;
+  }[];
+};
+
 export default function GradePage() {
   const { id: classroomId } = useParams()
-  const [assignments, setAssignments] = React.useState<any[]>([])
-  const [students, setStudents] = React.useState<any[]>([])
-  const [scores, setScores] = React.useState<{ [assignmentId: string]: { [studentId: string]: number | null } }>({})
+  const [assignments, setAssignments] = React.useState<Assignment[]>([]);
+  const [students, setStudents] = React.useState<Student[]>([]);
+  const [scores, setScores] = React.useState<{
+    [assignmentId: string]: { [studentId: string]: number | null };
+  }>({});
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("asc")
 
   React.useEffect(() => {
@@ -27,39 +60,39 @@ export default function GradePage() {
       })
 
       if (res.ok) {
-        const data = await res.json()
+        const data: ApiResponse = await res.json();
         const assignmentList = data.assignments || []
         const memberList = data.students || []
 
         const scoreMap: { [assignmentId: string]: { [studentId: string]: number | null } } = {}
 
-        assignmentList.forEach((assignment: any) => {
-          const assignmentId = assignment.id
-          scoreMap[assignmentId] = {}
-
-          memberList.forEach((student: any) => {
-            const studentId = student.id
+        assignmentList.forEach((assignment) => {
+          const assignmentId = assignment.id;
+          scoreMap[assignmentId] = {};
+        
+          memberList.forEach((student) => {
+            const studentId = student.id;
             const submission = assignment.submissions.find(
-              (s: any) => s.studentId === studentId
-            )
-
+              (s) => s.studentId === studentId
+            );
+        
             if (submission) {
               if (submission.grade) {
-                scoreMap[assignmentId][studentId] = submission.grade.score
+                scoreMap[assignmentId][studentId] = submission.grade.score;
               } else {
-                scoreMap[assignmentId][studentId] = -1 // Turned in but not graded
+                scoreMap[assignmentId][studentId] = -1; // Turned in but not graded
               }
             } else {
-              scoreMap[assignmentId][studentId] = null // Not submitted
+              scoreMap[assignmentId][studentId] = null; // Not submitted
             }
-          })
-        })
+          });
+        });
 
-        const formattedMembers = memberList.map((m: any) => ({
+        const formattedMembers: Student[] = memberList.map((m) => ({
           id: m.id,
           name: m.name || "Unnamed",
           avatar: m.image || PLACEHOLDER_IMAGE,
-        }))
+        }));
 
         setAssignments(assignmentList)
         setStudents(formattedMembers)
@@ -85,22 +118,22 @@ export default function GradePage() {
 
   const calculateClassAverage = (assignmentId: string, maxScore?: number) => {
     const studentScores = scores[assignmentId]
-  
+
     if (!maxScore) return "-" // Ungraded assignment
-  
+
     if (!studentScores) return "0.0" // No submissions at all
-  
+
     const validScores = Object.values(studentScores).filter(
       (score) => score !== null && score !== -1
     ) as number[]
-  
+
     if (validScores.length === 0) return "0.0" // Graded assignment but no valid scores
-  
+
     const average = validScores.reduce((sum, score) => sum + score, 0) / validScores.length
     return average.toFixed(1)
   }
-   
-  
+
+
 
   return (
     <div className="container mx-auto py-6">

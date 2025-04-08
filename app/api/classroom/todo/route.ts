@@ -1,10 +1,10 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/authOptions";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth/next";
 
 const prisma = new PrismaClient();
 
-export async function GET(request: Request) {
+export async function GET() {
     try {
         // Authenticate the user
         const session = await getServerSession(authOptions);

@@ -3,7 +3,7 @@
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useClassroomRole } from "@/hooks/useClassroomRole";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import ClassroomNavbar from "@/components/ClassroomNavbar";
 import Layout from "@/components/layout";
 
@@ -15,10 +15,10 @@ export default function ClassroomLayout({
   const { id } = useParams();
   const router = useRouter();
   const pathname = usePathname();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const { role, loading } = useClassroomRole(id as string);
 
-  const teacherOnlyPaths = ["/grade", "/analytics", "/classwork/review"];
+  const teacherOnlyPaths = useMemo(() => ["/grade", "/analytics", "/classwork/review"], []);
 
   useEffect(() => {
     if (!loading && role !== "teacher" && role !== "co-teacher") {
@@ -27,7 +27,7 @@ export default function ClassroomLayout({
         router.replace(`/classroom/not-authorized`);
       }
     }
-  }, [pathname, role, loading, id, router]);  
+  }, [pathname, role, loading, id, router, teacherOnlyPaths]);  
 
   if (loading || status === "loading") {
     return (

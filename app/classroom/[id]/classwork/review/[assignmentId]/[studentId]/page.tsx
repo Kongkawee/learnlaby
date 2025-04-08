@@ -9,6 +9,22 @@ import {
   GRADE_API,
 } from "@/lib/api_routes";
 
+type SubmissionFile = {
+  id: string;
+  name: string;
+  url: string;
+};
+
+type SubmissionResponse = {
+  submission: {
+    files: SubmissionFile[];
+    submittedAt: string | null;
+    grade?: {
+      score: number;
+    };
+  };
+};
+
 export default function StudentWorkPage() {
   const { studentId } = useParams();
   const searchParams = useSearchParams();
@@ -16,8 +32,8 @@ export default function StudentWorkPage() {
   const submissionId = searchParams.get("docId");
 
   const [status, setStatus] = useState(searchParams.get("status") || "Unknown");
-  const [files, setFiles] = useState<any[]>([]);
-  const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [files, setFiles] = useState<SubmissionFile[]>([]);
+  const [selectedFile, setSelectedFile] = useState<SubmissionFile | null>(null);  
   const [submittedAt, setSubmittedAt] = useState<string | null>(null);
   const [score, setScore] = useState<string>("");
   const [message, setMessage] = useState<string | null>(null);
@@ -33,7 +49,7 @@ export default function StudentWorkPage() {
           body: JSON.stringify({ submissionId }),
         });
 
-        const data = await res.json();
+        const data: SubmissionResponse = await res.json();
 
         if (data.submission) {
           const sub = data.submission;

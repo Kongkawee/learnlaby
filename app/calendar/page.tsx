@@ -45,7 +45,7 @@ export default function Profile() {
             textAlign: "center",
           }}
         >
-          {user.name || "Your"}'s Calendar
+          {user.name || "Your"}&apos;s Calendar
         </h1>
 
         {/* Display Google Calendar if authenticated */}

@@ -1,24 +1,29 @@
 import { PrismaClient } from "@prisma/client";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 
 const prisma = new PrismaClient();
 
-// GET a specific classroom by ID
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-    const { id } = await params; // Extract classroom ID from URL
+export async function GET(req: NextRequest) {
+  // Extract the ID from the URL path
+  const pathname = req.nextUrl.pathname;
+  const id = pathname.split("/").pop(); // Assumes route is /api/classroom/[id]
 
-    try {
-        const classroom = await prisma.classroom.findUnique({
-            where: { id },
-        });
+  if (!id) {
+    return NextResponse.json({ error: "Missing classroom ID" }, { status: 400 });
+  }
 
-        if (!classroom) {
-            return NextResponse.json({ error: "Classroom not found" }, { status: 404 });
-        }
+  try {
+    const classroom = await prisma.classroom.findUnique({
+      where: { id },
+    });
 
-        return NextResponse.json(classroom);
-    } catch (error) {
-        console.error("Error fetching classroom:", error);
-        return NextResponse.json({ error: "Failed to fetch classroom" }, { status: 500 });
+    if (!classroom) {
+      return NextResponse.json({ error: "Classroom not found" }, { status: 404 });
     }
+
+    return NextResponse.json(classroom);
+  } catch (error) {
+    console.error("Error fetching classroom:", error);
+    return NextResponse.json({ error: "Failed to fetch classroom" }, { status: 500 });
+  }
 }

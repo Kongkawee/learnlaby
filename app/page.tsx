@@ -1,35 +1,10 @@
 'use client'
 
-import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import styles from '@/components/index.module.css'
-import { HOME_PAGE } from '@/lib/api_routes'
 
 export default function SignIn() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const router = useRouter()
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email,
-        password,
-      })
-
-      if (result && result.error) {
-        console.error(result.error)
-      } else {
-        router.push(HOME_PAGE)
-      }
-    } catch (error) {
-      console.error('Error signing in:', error)
-    }
-  }
 
   return (
       <div className="flex h-screen">
@@ -50,7 +25,7 @@ export default function SignIn() {
         </div>
 
         <div className="w-full max-w-md mx-auto flex items-center justify-center px-4">
-          <form onSubmit={handleSubmit} className="w-full bg-white p-6">
+          <form className="w-full bg-white p-6">
             <div className="flex justify-center mb-4">
               <Image
                   src="/favicon.ico"

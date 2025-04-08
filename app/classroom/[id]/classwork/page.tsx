@@ -161,7 +161,7 @@ export default function Classwork() {
         );
 
         // Group posts by section
-        const groupedSections: { [key: string]: { id: string; name: string; posts: any[] } } = {};
+        const groupedSections: { [key: string]: { id: string; name: string; posts: Post[] } } = {};
 
         postsWithComments.forEach((post) => {
           if (post.section && post.section.name) {

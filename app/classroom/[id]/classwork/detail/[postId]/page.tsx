@@ -11,6 +11,7 @@ import {
   COMMENT_API,
   SUBMISSION_CREATE_API
 } from "@/lib/api_routes";
+import Image from "next/image";
 
 // Add interface for Comment
 interface Comment {
@@ -24,14 +25,47 @@ interface Comment {
   };
 }
 
+interface FileAttachment {
+  id: string;
+  url: string;
+}
+
+interface Author {
+  id: string;
+  name?: string;
+}
+
+interface Classwork {
+  id: string;
+  title: string;
+  type: "assignment" | "material" | string;
+  content: string;
+  createdAt: string;
+  dueDate?: string;
+  maxScore?: number;
+  author?: Author;
+  files?: FileAttachment[];
+}
+
+interface Grade {
+  score: number;
+}
+
+interface Submission {
+  id: string;
+  submittedAt: string;
+  files?: FileAttachment[];
+  grade?: Grade;
+}
+
 export default function ClassworkDetailPage() {
   const { postId } = useParams();
-  const [classwork, setClasswork] = useState<any>(null);
-  const [submission, setSubmission] = useState<any>(null);
+  const [classwork, setClasswork] = useState<Classwork | null>(null);
+  const [submission, setSubmission] = useState<Submission | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // State for comments
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentContent, setCommentContent] = useState<string>("");
@@ -195,11 +229,11 @@ export default function ClassworkDetailPage() {
 
         <p className="text-gray-800 mt-4 p-4 border rounded-lg shadow-lg">{classwork.content}</p>
 
-        {classwork.files?.length > 0 && (
+        {classwork.files && classwork.files.length > 0 && (
           <div className="mt-6">
             <p className="font-semibold mb-2">Attached Files:</p>
             <div className="space-y-2">
-              {classwork.files.map((file: any) => {
+              {classwork.files?.map((file: FileAttachment) => {
                 const fileName = file.url.split("/").pop();
                 return (
                   <div
@@ -224,9 +258,9 @@ export default function ClassworkDetailPage() {
         {/* Class Comments */}
         <div className="mt-6 p-4 bg-white rounded-lg shadow-md">
           <h4 className="font-semibold text-lg mb-4">Class comments</h4>
-          
+
           <Separator className="mb-4" />
-          
+
           {/* Display comments */}
           <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
             {comments && comments.length > 0 ? (
@@ -235,10 +269,12 @@ export default function ClassworkDetailPage() {
                   <div className="flex items-center gap-2">
                     {comment.user.image && (
                       <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                        <img
+                        <Image
                           src={comment.user.image}
                           alt={comment.user.name || "User"}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
+                          sizes="32px"
                         />
                       </div>
                     )}
@@ -256,7 +292,7 @@ export default function ClassworkDetailPage() {
               <p className="text-sm text-gray-500">No comments yet.</p>
             )}
           </div>
-          
+
           {/* Add new comment */}
           <div className="flex items-center space-x-2">
             <textarea
@@ -317,9 +353,9 @@ export default function ClassworkDetailPage() {
           {submission ? (
             <div className="mt-2 text-green-600 text-sm">
               <p>✅ Submitted on {new Date(submission.submittedAt).toLocaleDateString()} {new Date(submission.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-              {submission.files?.length > 0 && (
+              {submission.files && submission.files.length > 0 && (
                 <div className="mt-4 space-y-2">
-                  {submission.files.map((file: any) => {
+                  {submission.files?.map((file: FileAttachment) => {
                     const fileName = file.url.split("/").pop();
                     return (
                       <div

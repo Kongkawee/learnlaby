@@ -25,7 +25,7 @@ const AppNavbar = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [classCode, setClassCode] = useState("");
-    const [invitations, setInvitations] = useState<any[]>([]);
+    const [invitations, setInvitations] = useState<string[]>([]);
     const [loadingInvites, setLoadingInvites] = useState(false);
     const [classroomData, setClassroomData] = useState({
         name: "",

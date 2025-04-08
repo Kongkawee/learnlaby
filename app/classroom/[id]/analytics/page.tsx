@@ -37,10 +37,47 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { SUBMISSION_ASSIGNMENT_API, PLACEHOLDER_IMAGE } from "@/lib/api_routes";
 
+
+type Grade = {
+  score: number;
+};
+
+type Submission = {
+  studentId: string;
+  submittedAt: string;
+  grade?: Grade;
+};
+
+type Assignment = {
+  id: string;
+  title: string;
+  dueDate: string;
+  submissions: Submission[];
+};
+
+type Student = {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+};
+
+type BarChartData = {
+  name: string;
+  avgScore: number;
+};
+
+type PieChartData = {
+  name: string;
+  value: number;
+  color: string;
+};
+
+
 export default function AnalyticsPage() {
   const { id: classroomId } = useParams();
-  const [assignments, setAssignments] = useState<any[]>([]);
-  const [students, setStudents] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [selectedAssignment, setSelectedAssignment] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
@@ -62,7 +99,7 @@ export default function AnalyticsPage() {
         body: JSON.stringify({ classroomId }),
       });
 
-      const data = await res.json();
+      const data: { assignments: Assignment[]; students: Student[] } = await res.json();
       setAssignments(data.assignments || []);
       setStudents(data.students || []);
       setLoading(false);
@@ -75,27 +112,26 @@ export default function AnalyticsPage() {
     if (assignments.length > 0 && !selectedAssignment) {
       setSelectedAssignment(assignments[0].title);
     }
-  }, [assignments]);
+  }, [assignments, selectedAssignment]);
 
-  const averageScores = assignments.map((a) => {
-    const graded = a.submissions.filter((s: any) => s.grade?.score !== undefined);
+  const averageScores: BarChartData[] = assignments.map((a) => {
+    const graded = a.submissions.filter((s) => s.grade?.score !== undefined);
     const avgScore = graded.length > 0
-      ? graded.reduce((sum: number, s: any) => sum + parseFloat(s.grade.score), 0) / graded.length
+      ? graded.reduce((sum, s) => sum + parseFloat(s.grade!.score.toString()), 0) / graded.length
       : 0;
     return { name: a.title, avgScore };
   });
+  
 
   const avgScoreByTitle = averageScores.find((a) => a.name === selectedAssignment)?.avgScore || 0;
 
   const topPerformingAssignments = [...averageScores].sort((a, b) => b.avgScore - a.avgScore);
 
-  const hardestAssignments = [...averageScores].sort((a, b) => a.avgScore - b.avgScore);
-
-  const submissionStatusData = assignments.reduce((acc: any, assignment: any) => {
+  const submissionStatusData: Record<string, PieChartData[]> = assignments.reduce((acc: Record<string, PieChartData[]>, assignment) => {
     const stats = { "On Time": 0, "Late": 0, "Not Submitted": 0 };
 
-    students.forEach((student: any) => {
-      const submission = assignment.submissions.find((s: any) => s.studentId === student.id);
+    students.forEach((student) => {
+      const submission = assignment.submissions.find((s) => s.studentId === student.id);
       if (!submission) {
         stats["Not Submitted"]++;
       } else {
@@ -116,7 +152,7 @@ export default function AnalyticsPage() {
   const totalAssignments = assignments.length;
   const studentProgress = students.map((student) => {
     const submittedCount = assignments.reduce((count, assignment) => {
-      return assignment.submissions.some((s: any) => s.studentId === student.id) ? count + 1 : count;
+      return assignment.submissions.some((s) => s.studentId === student.id) ? count + 1 : count;
     }, 0);
 
     return {
@@ -231,7 +267,7 @@ export default function AnalyticsPage() {
               <XAxis dataKey="name" tickLine={false} axisLine={false} />
               <YAxis domain={[0, 100]} />
               <Tooltip />
-              <Line type="monotone" dataKey="avgScore" stroke={COLORS.purple} strokeWidth={2} dot={{r: 4 }} />
+              <Line type="monotone" dataKey="avgScore" stroke={COLORS.purple} strokeWidth={2} dot={{ r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
@@ -262,9 +298,9 @@ export default function AnalyticsPage() {
                 const bins = Array.from({ length: 10 }, (_, i) => ({ range: `${i * 10 + 1}-${(i + 1) * 10}`, count: 0 }));
 
                 if (selected) {
-                  selected.submissions.forEach((s: any) => {
+                  selected.submissions.forEach((s) => {
                     if (s.grade?.score !== undefined) {
-                      const score = parseFloat(s.grade.score);
+                      const score = s.grade.score;
                       const binIndex = Math.min(Math.floor(score / 10), 9);
                       bins[binIndex].count += 1;
                     }
@@ -333,7 +369,7 @@ export default function AnalyticsPage() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart 
+            <BarChart
               data={(() => {
                 // Calculate missing submissions for each assignment
                 return assignments.map(assignment => {
@@ -343,10 +379,10 @@ export default function AnalyticsPage() {
                     missingCount: missingCount
                   };
                 })
-                // Sort by most missing submissions first
-                .sort((a, b) => b.missingCount - a.missingCount)
-                // Take top 5
-                .slice(0, 5);
+                  // Sort by most missing submissions first
+                  .sort((a, b) => b.missingCount - a.missingCount)
+                  // Take top 5
+                  .slice(0, 5);
               })()}
             >
               <CartesianGrid strokeDasharray="3 3" />

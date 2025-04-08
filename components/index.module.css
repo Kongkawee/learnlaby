@@ -1,6 +1,6 @@
-body {
+/* body {
     margin: 0; line-height: normal;
-}
+} */
 
 .bounceSoft {
     animation: bounceSoft 2s infinite;

@@ -18,6 +18,7 @@ interface Assignment {
   submitted: boolean;
   submittedAt: string | null;
   isLate: boolean;
+  classroomName?: string;
 }
 
 interface AssignmentGroup {
@@ -46,7 +47,7 @@ export default function WorkPage() {
         }
         const data = await response.json();
         setAssignments(
-          data.assignments.map((assignment: any) => ({
+          data.assignments.map((assignment: Assignment) => ({
             id: assignment.id,
             title: assignment.title,
             className: assignment.classroomName,
