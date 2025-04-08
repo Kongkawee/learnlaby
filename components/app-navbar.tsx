@@ -20,12 +20,29 @@ type TimeSlot = {
     endTime: string;
 };
 
+type Invitation = {
+    id: string;
+    classroom: {
+        name: string;
+        startDate: string;
+        endDate: string;
+    };
+    role: string;
+    sender: {
+        name: string;
+        email: string;
+    };
+};
+
+
+
+
 const AppNavbar = () => {
     const [showPopup, setShowPopup] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [classCode, setClassCode] = useState("");
-    const [invitations, setInvitations] = useState<string[]>([]);
+    const [invitations, setInvitations] = useState<Invitation[]>([]);
     const [loadingInvites, setLoadingInvites] = useState(false);
     const [classroomData, setClassroomData] = useState({
         name: "",

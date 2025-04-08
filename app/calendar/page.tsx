@@ -7,8 +7,8 @@ import { useEffect } from "react";
 import { SIGNIN_PAGE } from "@/lib/api_routes";
 
 type SessionUser = {
-  name?: string;
-  email?: string;
+  name?: string | null;
+  email?: string | null;
 };
 
 export default function Profile() {

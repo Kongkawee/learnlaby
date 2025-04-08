@@ -154,11 +154,11 @@ export default function Classwork() {
 
         // Initialize posts with empty comments array and fetch comments for each post
         const postsWithComments = await Promise.all(
-          allPosts.map(async (post) => {
+          allPosts.map(async (post: Post) => {
             const comments = await fetchComments(post.id);
             return { ...post, comments };
           })
-        );
+        );        
 
         // Group posts by section
         const groupedSections: { [key: string]: { id: string; name: string; posts: Post[] } } = {};

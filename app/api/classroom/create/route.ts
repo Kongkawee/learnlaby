@@ -21,9 +21,9 @@ export async function POST(request: Request) {
 
         const ownerId = session?.user ? (session.user as { id: string }).id : null;
 
-        if (!name || !startDate || !endDate || timeSlots.length === 0) {
+        if (!name || !startDate || !endDate || timeSlots.length === 0 || !ownerId) {
             return new Response(
-                JSON.stringify({ error: "Missing required fields: name, startDate, endDate, or timeSlots." }),
+                JSON.stringify({ error: "Missing required fields: name, startDate, endDate, timeSlots, or user not authenticated." }),
                 { status: 400, headers: { "Content-Type": "application/json" } }
             );
         }
